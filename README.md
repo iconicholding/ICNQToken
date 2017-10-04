@@ -1,4 +1,4 @@
-# ICNQ Contracts
+# ICNQ Token and Crowdsale Smart Contracts
 
 ## Development
 
