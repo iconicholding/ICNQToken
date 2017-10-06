@@ -8,6 +8,14 @@ import "./ICNQtoken.sol";
 contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     uint256 public presaleEndTime;
 
+    // token supply figures
+    uint256 constant public totalSupplyToken = 16000000e18;
+    uint256 constant public presaleSupply = 666667e18;
+    uint256 constant public totalSupplyForCrowdsale = 8000000e18;
+    uint256 public constant COMPANY_SHARE = 1600000e18;
+    uint256 public constant TEAM_ADVISORS_SHARE = 4033333e18;
+    uint256 public constant BOUNTY_CAMPAIGN_SHARE = 1600000e18;
+
     function ICNQCrowdsale
         (
             uint256 _startTime,
