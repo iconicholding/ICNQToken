@@ -12,17 +12,23 @@ contract('ICNQCrowdsale', ([_, wallet]) => {
 
     const dayInSecs = 86400
 
-    let startTime, presaleEndTime, endTime
+    let startTime, presaleEndTime, firstBonusEndTime, secondBonusEndTime, endTime
     let crowdsale, token
 
     beforeEach('initialize contract', async () => {
         startTime = getBlockNow() + 2 // crowdsale starts in 2 seconds
         presaleEndTime = getBlockNow() + dayInSecs * 20 // 20 days
+        firstBonusEndTime = startTime + (86400 * 30) // 30 days
+        secondBonusEndTime = startTime + (86400 * 40) // 40 days
+        firstBonusEndTime = startTime + (86400 * 30) // 30 days
+        secondBonusEndTime = startTime + (86400 * 40) // 40 days
         endTime = getBlockNow() + dayInSecs * 60 // 60 days
 
         crowdsale = await ICNQCrowdsale.new(
             startTime,
             presaleEndTime,
+            firstBonusEndTime,
+            secondBonusEndTime,
             endTime,
             rate,
             goal,

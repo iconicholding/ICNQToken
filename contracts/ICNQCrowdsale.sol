@@ -6,7 +6,10 @@ import "zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol";
 import "./ICNQtoken.sol";
 
 contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale {
+    // bonus milestones
     uint256 public presaleEndTime;
+    uint256 public firstBonusEndTime;
+    uint256 public secondBonusEndTime;
 
     // token supply figures
     uint256 constant public totalSupplyToken = 16000000e18;
@@ -20,6 +23,8 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         (
             uint256 _startTime,
             uint256 _presaleEndTime,
+            uint256 _firstBonusEndTime,
+            uint256 _secondBonusEndTime,
             uint256 _endTime,
             uint256 _rate,
             uint256 _goal,
@@ -34,7 +39,10 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale {
     {
         ICNQToken(token).pause();
 
+        // setup for token bonus milestones
         presaleEndTime = _presaleEndTime;
+        firstBonusEndTime = _firstBonusEndTime;
+        secondBonusEndTime = _secondBonusEndTime;
 
         require(_goal <= _cap);
     }
