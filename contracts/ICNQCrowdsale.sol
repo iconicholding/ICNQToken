@@ -37,14 +37,14 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale {
         RefundableCrowdsale(_goal)
         Crowdsale(_startTime, _endTime, _rate, _wallet)
     {
-        ICNQToken(token).pause();
+        require(_goal <= _cap);
 
         // setup for token bonus milestones
         presaleEndTime = _presaleEndTime;
         firstBonusEndTime = _firstBonusEndTime;
         secondBonusEndTime = _secondBonusEndTime;
 
-        require(_goal <= _cap);
+        ICNQToken(token).pause();
     }
 
     /**
