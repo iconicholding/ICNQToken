@@ -131,7 +131,7 @@ contract('ICNQCrowdsale', ([owner, wallet, wallet2, founder1, founder2]) => {
             tokensCreated = await teamAndAdvisorsAllocationsContract.tokensCreated()
             tokensCreated.should.be.bignumber.equal(0)
 
-            await timer(dayInSecs * 40)
+            await timer(dayInSecs * 190)
 
             await teamAndAdvisorsAllocationsContract.unlock({from: founder1})
             await teamAndAdvisorsAllocationsContract.unlock({from: founder2})

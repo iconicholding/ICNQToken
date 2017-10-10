@@ -3,10 +3,11 @@ pragma solidity ^0.4.13;
 import "zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol";
+import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./TeamAndAdvisorsAllocation.sol";
 import "./ICNQToken.sol";
 
-contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale {
+contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
     // bonus milestones
     uint256 public presaleEndTime;
     uint256 public firstBonusEndTime;

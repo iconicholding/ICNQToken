@@ -31,7 +31,7 @@ contract TeamAndAdvisorsAllocation {
      */
     function TeamAndAdvisorsAllocation(address _owner, address token) {
         icnq = ICNQToken(token);
-        unlockedAt = now.add(30 days);
+        unlockedAt = now.add(180 days);
         oneYearAfterCreation = now.add(365 days);
         owner = _owner;
     }
