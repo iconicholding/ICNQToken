@@ -14,11 +14,11 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
     uint256 public secondBonusEndTime;
 
     // token supply figures
-    uint256 constant public totalSupplyToken = 16000000e18; // 1.6M
+    uint256 constant public totalSupplyToken = 16000000e18; // 16M
     uint256 constant public presaleSupply = 700000e18; // 700K
     uint256 constant public totalSupplyForCrowdsale = 8000000e18; // 8M
-    uint256 public constant COMPANY_SHARE = 1600000e18; // 1.6M
-    uint256 public constant TEAM_ADVISORS_SHARE = 4033333e18; // 4,033,333
+    uint256 public constant COMPANY_SHARE = 1700000e18; // 1.7M
+    uint256 public constant TEAM_ADVISORS_SHARE = 4000000e18; // 4M
     uint256 public constant BOUNTY_CAMPAIGN_SHARE = 1600000e18; // 1.6M
 
     TeamAndAdvisorsAllocation public teamAndAdvisorsAllocation;
