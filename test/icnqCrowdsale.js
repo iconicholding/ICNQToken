@@ -6,7 +6,7 @@ import { should, getBlockNow, ensuresException } from  './helpers/utils'
 import { timer } from './helpers/timer'
 const BigNumber = web3.BigNumber
 
-contract('ICNQCrowdsale', ([owner, wallet, wallet2, founder1, founder2]) => {
+contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) => {
     const rate = new BigNumber(50)
     const goal = new BigNumber(100)
     const cap = new BigNumber(1000000000e+18)
@@ -17,7 +17,6 @@ contract('ICNQCrowdsale', ([owner, wallet, wallet2, founder1, founder2]) => {
     const expectedTeamAndAdvisorTokens = new BigNumber(4033333e+18); // 4,033, 333
     const expectedBountyCampaignTokens = new BigNumber(1600000e+18); // 1.6M
 
-
     const dayInSecs = 86400
 
     let startTime, presaleEndTime, firstBonusEndTime, secondBonusEndTime, endTime
@@ -26,12 +25,10 @@ contract('ICNQCrowdsale', ([owner, wallet, wallet2, founder1, founder2]) => {
 
     const newCrowdsale = (rate) => {
         startTime = getBlockNow() + 20 // crowdsale starts in 2 seconds
-        presaleEndTime = getBlockNow() + dayInSecs * 20 // 20 days
-        firstBonusEndTime = startTime + (86400 * 30) // 30 days
-        secondBonusEndTime = startTime + (86400 * 40) // 40 days
-        firstBonusEndTime = startTime + (86400 * 30) // 30 days
-        secondBonusEndTime = startTime + (86400 * 40) // 40 days
-        endTime = getBlockNow() + dayInSecs * 60 // 60 days
+        presaleEndTime = startTime + (dayInSecs * 20) // 20 days
+        firstBonusEndTime = startTime + (dayInSecs * 30) // 30 days
+        secondBonusEndTime = startTime + (dayInSecs * 40) // 40 days
+        endTime = startTime + (dayInSecs * 60) // 60 days
 
         return ICNQCrowdsale.new(
             startTime,
@@ -42,8 +39,7 @@ contract('ICNQCrowdsale', ([owner, wallet, wallet2, founder1, founder2]) => {
             rate,
             goal,
             cap,
-            wallet,
-            wallet2
+            wallet
         )
     }
 
@@ -67,6 +63,89 @@ contract('ICNQCrowdsale', ([owner, wallet, wallet2, founder1, founder2]) => {
         paused.should.equal(true)
     })
 
+    describe('token purchases plus their bonuses', () => {
+        it('does NOT buy tokens if crowdsale is paused', async () => {
+            await timer(dayInSecs * 42)
+            await crowdsale.pause()
+            let buyerBalance
+
+            try {
+                await crowdsale.buyTokens(buyer, { value })
+                assert.fail()
+            } catch(e) {
+                ensuresException(e)
+            }
+
+            buyerBalance = await token.balanceOf(buyer)
+            buyerBalance.should.be.bignumber.equal(0)
+
+            await crowdsale.unpause()
+            await crowdsale.buyTokens(buyer, { value })
+
+            buyerBalance = await token.balanceOf(buyer)
+            buyerBalance.should.be.bignumber.equal(50e+18)
+        })
+
+        it('has bonus of 20% during the presale', async () => {
+            await timer(50) // within presale period
+            await crowdsale.buyTokens(buyer2, { value })
+
+            const buyerBalance = await token.balanceOf(buyer2)
+            buyerBalance.should.be.bignumber.equal(75e+18) // 50% bonus
+        })
+
+        it('stops presale once the presaleCap is reached', async () => {
+            const newRate = new BigNumber(700000)
+            crowdsale = await newCrowdsale(newRate)
+            token = ICNQToken.at(await crowdsale.token())
+            await timer(50) // within presale period
+
+            await crowdsale.buyTokens(buyer2, { value })
+
+            try {
+                await crowdsale.buyTokens(buyer, { value })
+                assert.fail()
+            } catch (e) {
+                ensuresException(e)
+            }
+
+            const buyerBalance = await token.balanceOf(buyer)
+            buyerBalance.should.be.bignumber.equal(0)
+        })
+
+        it('is also able to buy tokens with bonus by sending ether to the contract directly', async () => {
+            await timer(50)
+            await crowdsale.sendTransaction({ from: buyer, value })
+
+            const purchaserBalance = await token.balanceOf(buyer)
+            purchaserBalance.should.be.bignumber.equal(75e+18) // 50% bonus
+        })
+
+        it('gives out 10% bonus during first crowdsale bonus period', async () => {
+            await timer(dayInSecs * 22)
+            await crowdsale.buyTokens(buyer2, { value })
+
+            const buyerBalance = await token.balanceOf(buyer2)
+            buyerBalance.should.be.bignumber.equal(55e+18) // 10% bonus
+        })
+
+        it('provides 5% bonus during second crowdsale bonus period', async () => {
+            timer(dayInSecs * 32)
+            await crowdsale.buyTokens(buyer2, { value })
+
+            const buyerBalance = await token.balanceOf(buyer2)
+            buyerBalance.should.be.bignumber.equal(575e+17) // 5% bonus
+        })
+
+        it('provides 0% bonus after second crowdsale bonus period', async () => {
+            timer(dayInSecs * 42)
+            await crowdsale.buyTokens(buyer2, { value })
+
+            const buyerBalance = await token.balanceOf(buyer2)
+            buyerBalance.should.be.bignumber.equal(50e+18) // 0% bonus
+        })
+    })
+
     describe('teamAndAdvisorsAllocations', () => {
         beforeEach('finalizes crowdsale and assigns tokens to company, team & advisors and bounty campaign', async () => {
             crowdsale = await newCrowdsale(rate)
@@ -81,14 +160,9 @@ contract('ICNQCrowdsale', ([owner, wallet, wallet2, founder1, founder2]) => {
             teamAndAdvisorsAllocationsContract = TeamAndAdvisorsAllocation.at(teamAndAdvisorsAllocations)
         })
 
-        it('assigns tokens correctly to company', async function () {
+        it('assigns tokens correctly to company. It has company tokens + bounty campaign tokens', async function () {
             const balanceCompany = await token.balanceOf(await wallet)
-            balanceCompany.should.be.bignumber.equal(expectedCompanyTokens)
-        })
-
-        it('assigns tokens correctly to bountyCampaignWallet', async function () {
-            const balanceBountyCampaign = await token.balanceOf(await crowdsale.bountyCampaignWallet())
-            balanceBountyCampaign.should.be.bignumber.equal(expectedBountyCampaignTokens)
+            balanceCompany.should.be.bignumber.equal(expectedCompanyTokens.add(expectedBountyCampaignTokens))
         })
 
         it('assigns tokens correctly teamAndAdvisorsAllocations contract', async function () {

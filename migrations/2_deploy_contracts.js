@@ -12,7 +12,7 @@ const goal = new BigNumber(100)
 const rate = new BigNumber(500)
 const cap = new BigNumber(1000)
 
-module.exports = function(deployer, network, [_, wallet, wallet2]) {
+module.exports = function(deployer, network, [_, wallet]) {
     // token deployed only for testing purposes. NOTE: dont use it for the mainnet.
     deployer.deploy(ICNQToken);
 
@@ -26,7 +26,6 @@ module.exports = function(deployer, network, [_, wallet, wallet2]) {
         rate,
         goal,
         cap,
-        wallet,
-        wallet2
+        wallet
     );
 };
