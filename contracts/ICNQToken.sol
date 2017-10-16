@@ -5,7 +5,7 @@ import "zeppelin-solidity/contracts/token/PausableToken.sol";
 import "zeppelin-solidity/contracts/token/BurnableToken.sol";
 
 /**
- * @title Zulu Token contract - ERC20 compatible token contract.
+ * @title ICNQ Token contract - ERC20 compatible token contract.
  * @author Gustavo Guimaraes - <gustavoguimaraes@gmail.com>
  */
 contract ICNQToken is BurnableToken, PausableToken, MintableToken {
