@@ -197,7 +197,25 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
             tokensCreated.should.be.bignumber.equal(0)
         })
 
-        it('unlocks founders allocation after the unlock period is up', async function () {
+        it('unlocks half of founders allocation after the first unlock period', async function () {
+            let tokensCreated
+            await teamAndAdvisorsAllocationsContract.addTeamAndAdvisorsAllocation(founder1, 800)
+            await teamAndAdvisorsAllocationsContract.addTeamAndAdvisorsAllocation.sendTransaction(founder2, 1000, {from: owner})
+
+            tokensCreated = await teamAndAdvisorsAllocationsContract.tokensCreated()
+            tokensCreated.should.be.bignumber.equal(0)
+            await timer(dayInSecs * 200)
+
+            await teamAndAdvisorsAllocationsContract.unlock({from: founder1})
+            await teamAndAdvisorsAllocationsContract.unlock({from: founder2})
+
+            const tokenBalanceFounder1 = await token.balanceOf(founder1)
+            const tokenBalanceFounder2 = await token.balanceOf(founder2)
+            tokenBalanceFounder1.should.be.bignumber.equal(400)
+            tokenBalanceFounder2.should.be.bignumber.equal(500)
+        })
+
+        it('unlocks all founders allocated tokens after the second unlock period is up', async function () {
             let tokensCreated
             await teamAndAdvisorsAllocationsContract.addTeamAndAdvisorsAllocation(founder1, 800)
             await teamAndAdvisorsAllocationsContract.addTeamAndAdvisorsAllocation.sendTransaction(founder2, 1000, {from: owner})
@@ -205,7 +223,7 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
             tokensCreated = await teamAndAdvisorsAllocationsContract.tokensCreated()
             tokensCreated.should.be.bignumber.equal(0)
 
-            await timer(dayInSecs * 190)
+            await timer(dayInSecs * 365)
 
             await teamAndAdvisorsAllocationsContract.unlock({from: founder1})
             await teamAndAdvisorsAllocationsContract.unlock({from: founder2})
@@ -240,7 +258,7 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
             const tokensCreated = await teamAndAdvisorsAllocationsContract.tokensCreated()
             tokensCreated.should.be.bignumber.equal(0)
 
-            await timer(dayInSecs * 400) // 400 days after
+            await timer(dayInSecs * 540) // 540 days after
 
             await teamAndAdvisorsAllocationsContract.kill()
 

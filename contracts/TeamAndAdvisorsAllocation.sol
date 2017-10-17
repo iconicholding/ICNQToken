@@ -7,7 +7,8 @@ contract TeamAndAdvisorsAllocation {
     using SafeMath for uint;
     address public owner;
     uint256 public unlockedAt;
-    uint256 public oneYearAfterCreation;
+    uint256 public secondUnlockedAt;
+    uint256 public killableCall;
     uint256 public tokensCreated = 0;
     uint256 public allocatedTokens = 0;
     uint256 totalTeamAndAdvisorsAllocation = 4033333e18;
@@ -32,7 +33,8 @@ contract TeamAndAdvisorsAllocation {
     function TeamAndAdvisorsAllocation(address _owner, address token) {
         icnq = ICNQToken(token);
         unlockedAt = now.add(180 days);
-        oneYearAfterCreation = now.add(365 days);
+        secondUnlockedAt = now.add(360 days);
+        killableCall = now.add(540 days);
         owner = _owner;
     }
 
@@ -67,8 +69,14 @@ contract TeamAndAdvisorsAllocation {
             tokensCreated = icnq.balanceOf(this);
         }
 
-        uint256 transferAllocation = teamAndAdvisorsAllocations[msg.sender];
-        teamAndAdvisorsAllocations[msg.sender] = 0;
+        uint256 transferAllocation;
+        if (now < secondUnlockedAt) {
+            transferAllocation = teamAndAdvisorsAllocations[msg.sender].div(2);
+            teamAndAdvisorsAllocations[msg.sender] = teamAndAdvisorsAllocations[msg.sender].sub(transferAllocation);
+        } else if (now >= secondUnlockedAt) {
+            transferAllocation = teamAndAdvisorsAllocations[msg.sender];
+            teamAndAdvisorsAllocations[msg.sender] = 0;
+        }
 
         // Will fail if allocation (and therefore toTransfer) is 0.
         require(icnq.transfer(msg.sender, transferAllocation));
@@ -78,7 +86,7 @@ contract TeamAndAdvisorsAllocation {
      * @dev allow for selfdestruct possibility and sending funds to owner
      */
     function kill() onlyOwner() {
-        assert (now >= oneYearAfterCreation);
+        assert (now >= killableCall);
         uint256 balance = icnq.balanceOf(this);
 
         if (balance > 0) {
