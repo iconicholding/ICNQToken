@@ -5,7 +5,7 @@
 **Dependencies**
 
 - `node@8.5.x`
-- `truffle@^3.4.x`
+- `truffle@^4.0.x`
 - `ethereumjs-testrpc@^4.0.x`
 - `zeppelin-solidity@1.3.X`
 
