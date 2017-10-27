@@ -7,6 +7,10 @@ import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./TeamAndAdvisorsAllocation.sol";
 import "./ICNQToken.sol";
 
+/**
+ * @title ICNQ Crowdsale contract - crowdsale contract for the APA tokens.
+ * @author Gustavo Guimaraes - <gustavoguimaraes@gmail.com>
+ */
 contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
     // bonus milestones
     uint256 public presaleEndTime;
@@ -126,7 +130,7 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
 
      /**
      * @dev checks whether it is pre sale and if there is minimum purchase requirement
-     * @return truthy if purchase is equal or more than 10 ether
+     * @return truthy if token total supply is less than presaleSupply
      */
      function checkPreSaleCap() internal returns (bool) {
         return token.totalSupply() <= presaleSupply;
