@@ -161,7 +161,7 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
         })
 
         it('assigns tokens correctly to company. It has company tokens + bounty campaign tokens', async function () {
-            const balanceCompany = await token.balanceOf(await wallet)
+            const balanceCompany = await token.balanceOf(wallet)
             balanceCompany.should.be.bignumber.equal(expectedCompanyTokens.add(expectedBountyCampaignTokens))
         })
 
