@@ -156,7 +156,7 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
       * @dev Mint tokens for company, team & advisors, and bounty campaign
       */
      function mintCompanyTokens() internal {
-         teamAndAdvisorsAllocation = new TeamAndAdvisorsAllocation(owner, token);
+         teamAndAdvisorsAllocation = new TeamAndAdvisorsAllocation(owner, token, wallet);
 
          token.mint(wallet, COMPANY_SHARE);
          token.mint(wallet, BOUNTY_CAMPAIGN_SHARE); // allocate BOUNTY_CAMPAIGN_SHARE to company wallet as well
