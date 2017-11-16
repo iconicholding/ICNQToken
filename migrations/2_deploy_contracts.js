@@ -14,18 +14,34 @@ const cap = new BigNumber(1000)
 
 module.exports = function(deployer, network, [_, wallet]) {
     // token deployed only for testing purposes. NOTE: dont use it for the mainnet.
-    deployer.deploy(ICNQToken);
+    if (network == "testnet") {
+        deployer.deploy(
+            ICNQCrowdsale,
+            1510866000,
+            1510920000,
+            1510930800,
+            1510941600,
+            1510952400,
+            100,
+            2,
+            15,
+            "0xc87B4F92a73b44445dE5E11b0Ba4652Ff34393d9"
+        );
+    } else {
+        deployer.deploy(ICNQToken);
 
-    deployer.deploy(
-        ICNQCrowdsale,
-        startTime,
-        presaleEndTime,
-        firstBonusEndTime,
-        secondBonusEndTime,
-        endTime,
-        rate,
-        goal,
-        cap,
-        wallet
-    );
+        deployer.deploy(
+            ICNQCrowdsale,
+            startTime,
+            presaleEndTime,
+            firstBonusEndTime,
+            secondBonusEndTime,
+            endTime,
+            rate,
+            goal,
+            cap,
+            wallet
+        );
+
+    }
 };
