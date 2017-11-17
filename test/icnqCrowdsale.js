@@ -37,8 +37,6 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
             secondBonusEndTime,
             endTime,
             rate,
-            goal,
-            cap,
             wallet
         )
     }
@@ -46,11 +44,6 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
     beforeEach('initialize contract', async () => {
         crowdsale = await newCrowdsale(rate)
         token = ICNQToken.at(await crowdsale.token())
-    })
-
-    it('has a cap', async () => {
-        const crowdsaleCap = await crowdsale.cap()
-        crowdsaleCap.should.be.bignumber.equal(cap)
     })
 
     it('has a normal crowdsale rate', async () => {
@@ -154,7 +147,6 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
             timer(dayInSecs * 62)
 
             await crowdsale.finalize()
-            await crowdsale.unpauseToken() // unpause token so transfer is permitted
 
             const teamAndAdvisorsAllocations = await crowdsale.teamAndAdvisorsAllocation()
             teamAndAdvisorsAllocationsContract = TeamAndAdvisorsAllocation.at(teamAndAdvisorsAllocations)
@@ -217,7 +209,7 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
             companyWalletBalance = await token.balanceOf(wallet)
             companyWalletBalance.should.be.bignumber.equal(expectedCompanyTokens.add(expectedBountyCampaignTokens))
 
-            await timer(dayInSecs * 365)
+            await timer(dayInSecs * 366)
 
             await teamAndAdvisorsAllocationsContract.unlock({from: owner})
 
@@ -227,36 +219,6 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
 
             tokensTransferred = await teamAndAdvisorsAllocationsContract.tokensTransferred()
             tokensTransferred.should.be.bignumber.equal(expectedTeamAndAdvisorTokens)
-        })
-
-        it('does NOT kill contract before one year is up', async function () {
-            try {
-             await teamAndAdvisorsAllocationsContract.kill()
-             assert.fail()
-            } catch(e) {
-             ensuresException(e)
-            }
-
-            const balance = await token.balanceOf(await teamAndAdvisorsAllocationsContract.address)
-            balance.should.be.bignumber.equal(expectedTeamAndAdvisorTokens)
-
-            const tokensTransferred = await teamAndAdvisorsAllocationsContract.tokensTransferred()
-            tokensTransferred.should.be.bignumber.equal(0)
-        })
-
-        it('is able to kill contract after one year', async () => {
-            const tokensTransferred = await teamAndAdvisorsAllocationsContract.tokensTransferred()
-            tokensTransferred.should.be.bignumber.equal(0)
-
-            await timer(dayInSecs * 540) // 540 days after
-
-            await teamAndAdvisorsAllocationsContract.kill()
-
-            const balance = await token.balanceOf(await teamAndAdvisorsAllocationsContract.address)
-            balance.should.be.bignumber.equal(0)
-
-            const balanceOwner = await token.balanceOf(owner)
-            balanceOwner.should.be.bignumber.equal(expectedTeamAndAdvisorTokens)
         })
     })
  })

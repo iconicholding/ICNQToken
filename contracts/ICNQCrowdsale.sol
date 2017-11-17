@@ -1,8 +1,6 @@
 pragma solidity ^0.4.13;
 
-import "zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol";
 import "zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol";
-import "zeppelin-solidity/contracts/crowdsale/RefundableCrowdsale.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./TeamAndAdvisorsAllocation.sol";
 import "./ICNQToken.sol";
@@ -11,14 +9,13 @@ import "./ICNQToken.sol";
  * @title ICNQ Crowdsale contract - crowdsale contract for the APA tokens.
  * @author Gustavo Guimaraes - <gustavoguimaraes@gmail.com>
  */
-contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
+contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     // bonus milestones
     uint256 public presaleEndTime;
     uint256 public firstBonusEndTime;
     uint256 public secondBonusEndTime;
 
     // token supply figures
-    uint256 constant public totalSupplyToken = 16000000e18; // 16M
     uint256 constant public presaleSupply = 700000e18; // 700K
     uint256 constant public totalSupplyForCrowdsale = 8000000e18; // 8M
     uint256 public constant COMPANY_SHARE = 1700000e18; // 1.7M
@@ -35,18 +32,12 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
             uint256 _secondBonusEndTime,
             uint256 _endTime,
             uint256 _rate,
-            uint256 _goal,
-            uint256 _cap,
             address _wallet
         )
 
-        CappedCrowdsale(_cap)
         FinalizableCrowdsale()
-        RefundableCrowdsale(_goal)
         Crowdsale(_startTime, _endTime, _rate, _wallet)
     {
-        require(_goal <= _cap);
-
         // setup for token bonus milestones
         presaleEndTime = _presaleEndTime;
         firstBonusEndTime = _firstBonusEndTime;
@@ -72,7 +63,7 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
         payable
     {
         require(beneficiary != address(0));
-        require(validPurchase());
+        require(validPurchase() && token.totalSupply() <= totalSupplyForCrowdsale);
 
         if (now >= startTime && now <= presaleEndTime)
             require(checkPreSaleCap());
@@ -103,25 +94,14 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
      * @dev finalizes crowdsale
      */
     function finalization() internal {
-       mintCompanyTokens();
+        teamAndAdvisorsAllocation = new TeamAndAdvisorsAllocation(owner, token, wallet);
 
-       super.finalization();
-    }
+        token.mint(wallet, COMPANY_SHARE);
+        token.mint(wallet, BOUNTY_CAMPAIGN_SHARE); // allocate BOUNTY_CAMPAIGN_SHARE to company wallet as well
+        token.mint(teamAndAdvisorsAllocation, TEAM_ADVISORS_SHARE);
 
-    /**
-     * @dev triggers token transfer mechanism. To be used after the crowdsale is finished
-     */
-    function unpauseToken() onlyOwner {
-        require(isFinalized);
         ICNQToken(token).unpause();
-    }
-
-    /**
-     * @dev Pauses token transfers. Only used after crowdsale finishes
-     */
-    function pauseToken() onlyOwner {
-        require(isFinalized);
-        ICNQToken(token).pause();
+        super.finalization();
     }
 
     /**
@@ -151,15 +131,4 @@ contract ICNQCrowdsale is CappedCrowdsale, RefundableCrowdsale, Pausable {
         if (secondBonusSalesPeriod) return 15;
         if (thirdBonusSalesPeriod) return 0;
     }
-
-     /**
-      * @dev Mint tokens for company, team & advisors, and bounty campaign
-      */
-     function mintCompanyTokens() internal {
-         teamAndAdvisorsAllocation = new TeamAndAdvisorsAllocation(owner, token, wallet);
-
-         token.mint(wallet, COMPANY_SHARE);
-         token.mint(wallet, BOUNTY_CAMPAIGN_SHARE); // allocate BOUNTY_CAMPAIGN_SHARE to company wallet as well
-         token.mint(teamAndAdvisorsAllocation, TEAM_ADVISORS_SHARE);
-     }
 }

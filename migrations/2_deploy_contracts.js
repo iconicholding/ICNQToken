@@ -8,12 +8,9 @@ const presaleEndTime = startTime + (86400 * 20) // 20 days
 const firstBonusEndTime = startTime + (86400 * 30) // 30 days
 const secondBonusEndTime = startTime + (86400 * 40) // 40 days
 const endTime = startTime + (86400 * 60) // 20 days
-const goal = new BigNumber(100)
 const rate = new BigNumber(500)
-const cap = new BigNumber(1000)
 
 module.exports = function(deployer, network, [_, wallet]) {
-    // token deployed only for testing purposes. NOTE: dont use it for the mainnet.
     if (network == "testnet") {
         deployer.deploy(
             ICNQCrowdsale,
@@ -23,11 +20,10 @@ module.exports = function(deployer, network, [_, wallet]) {
             1510941600,
             1510952400,
             100,
-            2,
-            15,
             "0xc87B4F92a73b44445dE5E11b0Ba4652Ff34393d9"
         );
     } else {
+        // token deployed only for testing purposes. NOTE: dont use it for the mainnet.
         deployer.deploy(ICNQToken);
 
         deployer.deploy(
@@ -38,8 +34,6 @@ module.exports = function(deployer, network, [_, wallet]) {
             secondBonusEndTime,
             endTime,
             rate,
-            goal,
-            cap,
             wallet
         );
 

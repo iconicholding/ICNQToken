@@ -31,7 +31,6 @@ contract TeamAndAdvisorsAllocation {
     function TeamAndAdvisorsAllocation(address _owner, address token, address _companyWallet) {
         icnq = ICNQToken(token);
         unlockedAt = now.add(360 days);
-        killableCall = now.add(540 days);
         owner = _owner;
         companyWallet = _companyWallet;
     }
@@ -59,18 +58,4 @@ contract TeamAndAdvisorsAllocation {
          require(newOwner != address(0) && newOwner != owner);
          owner = newOwner;
      }
-
-    /**
-     * @dev allow for selfdestruct possibility and sending funds to owner
-     */
-    function kill() public onlyOwner {
-        assert (now >= killableCall);
-        uint256 balance = icnq.balanceOf(this);
-
-        if (balance > 0) {
- 		    icnq.transfer(owner, balance);
- 		}
-
-        selfdestruct(owner);
-    }
 }
