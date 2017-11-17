@@ -14,7 +14,7 @@ module.exports = function(deployer, network, [_, wallet]) {
     if (network == "testnet") {
         deployer.deploy(
             ICNQCrowdsale,
-            1510866000,
+            1510905600,
             1510920000,
             1510930800,
             1510941600,
