@@ -18,6 +18,12 @@ module.exports = {
         port: 8545,
         gas: 5144479
       },
+      rinkeby: {
+        network_id: 4, // Rinkeby Ethereum test network
+        host: "localhost",
+        port: 8545,
+        gas: 5144479
+      },
       development: {
         host: 'localhost',
         port: 8545,
