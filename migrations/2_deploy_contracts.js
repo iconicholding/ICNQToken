@@ -11,7 +11,7 @@ const endTime = startTime + (86400 * 60) // 20 days
 const rate = new BigNumber(500)
 
 module.exports = function(deployer, network, [_, wallet]) {
-    if (network == "rinkeby" || "testnet") {
+    if (network == "rinkeby" || network == "testnet") {
         deployer.deploy(
             ICNQCrowdsale,
             1510905600,

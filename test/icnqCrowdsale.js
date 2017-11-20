@@ -139,6 +139,52 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
         })
     })
 
+    describe('finalize crowdsale', () => {
+        it('does not allow trading of tokens before the crowdsale finalizes', async () => {
+            timer(dayInSecs * 42)
+            await crowdsale.buyTokens(buyer, { value: 1e+18, from: buyer })
+            const buyerBalance = await token.balanceOf(buyer);
+
+            try {
+                await token.transfer(buyer2, 10, { from: buyer })
+                assert.fail()
+            } catch(e) {
+                ensuresException(e)
+            }
+            const buyerBalanceAfterAttemptedTransfer = await token.balanceOf(buyer);
+            buyerBalanceAfterAttemptedTransfer.should.be.bignumber.equal(buyerBalance)
+        })
+
+        it('allows token tranfers after crowdsale finalization', async () => {
+            timer(dayInSecs * 42)
+            await crowdsale.buyTokens(buyer, { value: 2e+18, from: buyer })
+            timer(dayInSecs * 20)
+            const buyerBalance = await token.balanceOf(buyer);
+
+            await crowdsale.finalize()
+
+            await token.transfer(buyer2, 10, { from: buyer })
+
+            const buyerBalanceAfterTransfer = await token.balanceOf(buyer);
+
+            buyerBalanceAfterTransfer.should.be.bignumber.below(buyerBalance)
+        })
+
+        it('mints tokens for company, bounty campaign as well as team and advisors', async () => {
+            timer(dayInSecs * 62)
+            await crowdsale.finalize()
+
+            const teamAndAdvisorsAllocations = await crowdsale.teamAndAdvisorsAllocation()
+            teamAndAdvisorsAllocationsContract = TeamAndAdvisorsAllocation.at(teamAndAdvisorsAllocations)
+
+            const balanceCompany = await token.balanceOf(wallet)
+            balanceCompany.should.be.bignumber.equal(expectedCompanyTokens.add(expectedBountyCampaignTokens))
+
+            const balanceTeamAndAdvisors = await token.balanceOf(await teamAndAdvisorsAllocationsContract.address)
+            balanceTeamAndAdvisors.should.be.bignumber.equal(expectedTeamAndAdvisorTokens)
+        })
+    })
+
     describe('teamAndAdvisorsAllocations', () => {
         beforeEach('finalizes crowdsale and assigns tokens to company, team & advisors and bounty campaign', async () => {
             crowdsale = await newCrowdsale(rate)
