@@ -16,11 +16,11 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     uint256 public secondBonusEndTime;
 
     // token supply figures
-    uint256 constant public presaleSupply = 700000e18; // 700K
-    uint256 constant public totalSupplyForCrowdsale = 8000000e18; // 8M
-    uint256 public constant COMPANY_SHARE = 1700000e18; // 1.7M
+    uint256 constant public PRE_SALE = 750000e18; // 750K
+    uint256 constant public TOTAL_CROWDSALE = 12000000e18; // 12M
+    uint256 public constant COMPANY_SHARE = 2000000e18; // 2M
     uint256 public constant TEAM_ADVISORS_SHARE = 4000000e18; // 4M
-    uint256 public constant BOUNTY_CAMPAIGN_SHARE = 1600000e18; // 1.6M
+    uint256 public constant BOUNTY_CAMPAIGN_SHARE = 2000000e18; // 2M
 
     TeamAndAdvisorsAllocation public teamAndAdvisorsAllocation;
 
@@ -47,13 +47,6 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     }
 
     /**
-     * @dev Creates ICNQ token contract. This is called on the constructor function of the Crowdsale contract
-     */
-    function createTokenContract() internal returns (MintableToken) {
-        return new ICNQToken();
-    }
-
-    /**
      * @dev payable function that allow token purchases
      * @param beneficiary Address of the purchaser
      */
@@ -63,7 +56,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         payable
     {
         require(beneficiary != address(0));
-        require(validPurchase() && token.totalSupply() <= totalSupplyForCrowdsale);
+        require(validPurchase() && token.totalSupply() <= TOTAL_CROWDSALE);
 
         if (now >= startTime && now <= presaleEndTime)
             require(checkPreSaleCap());
@@ -110,11 +103,11 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
 
      /**
      * @dev checks whether it is pre sale and if there is minimum purchase requirement
-     * @return truthy if token total supply is less than presaleSupply
+     * @return truthy if token total supply is less than PRE_SALE
      */
-     function checkPreSaleCap() internal returns (bool) {
-        return token.totalSupply() <= presaleSupply;
-     }
+    function checkPreSaleCap() internal returns (bool) {
+        return token.totalSupply() <= PRE_SALE;
+    }
 
      /**
      * @dev Fetches Bonus tier percentage per bonus milestones
@@ -130,5 +123,12 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         if (firstBonusSalesPeriod) return 10;
         if (secondBonusSalesPeriod) return 15;
         if (thirdBonusSalesPeriod) return 0;
+    }
+
+    /**
+     * @dev Creates ICNQ token contract. This is called on the constructor function of the Crowdsale contract
+     */
+    function createTokenContract() internal returns (MintableToken) {
+        return new ICNQToken();
     }
 }

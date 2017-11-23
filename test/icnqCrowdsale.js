@@ -13,9 +13,9 @@ contract('ICNQCrowdsale', ([owner, wallet, founder1, founder2, buyer, buyer2]) =
 
     const value = new BigNumber(1e+18)
 
-    const expectedCompanyTokens = new BigNumber(1700000e+18); // 1.7M
+    const expectedCompanyTokens = new BigNumber(2000000e+18); // 2M
     const expectedTeamAndAdvisorTokens = new BigNumber(4000000e+18); // 4M
-    const expectedBountyCampaignTokens = new BigNumber(1600000e+18); // 1.6M
+    const expectedBountyCampaignTokens = new BigNumber(2000000e+18); // 2M
 
     const dayInSecs = 86400
 
