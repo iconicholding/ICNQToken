@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.18;
 
 import './ICNQToken.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
@@ -13,7 +13,7 @@ contract TeamAndAdvisorsAllocation {
 
     mapping (address => uint256) public teamAndAdvisorsAllocations;
 
-    ICNQToken icnq;
+    ICNQToken public icnq;
 
     /**
      * @dev Throws if called by any account other than the owner.
@@ -28,7 +28,7 @@ contract TeamAndAdvisorsAllocation {
      * @param _owner Contract owner
      * @param token Token contract address for AllPublicArtToken
      */
-    function TeamAndAdvisorsAllocation(address _owner, address token, address _companyWallet) {
+    function TeamAndAdvisorsAllocation(address _owner, address token, address _companyWallet) public {
         icnq = ICNQToken(token);
         unlockedAt = now.add(360 days);
         owner = _owner;
@@ -36,7 +36,8 @@ contract TeamAndAdvisorsAllocation {
     }
 
     /**
-     * @dev Allow team and advisors to unlock allocated tokens by transferring them whitelisted addresses. Need to be called by each address
+     * @dev Allow team and advisors to unlock allocated tokens by transferring them whitelisted addresses.
+     * Need to be called by each address
      */
     function unlock() external onlyOwner {
         assert(now >= unlockedAt);
@@ -54,8 +55,8 @@ contract TeamAndAdvisorsAllocation {
      * @dev change contract owner
      * @param newOwner Replace for owner
      */
-     function changeOwner(address newOwner) external onlyOwner {
-         require(newOwner != address(0) && newOwner != owner);
-         owner = newOwner;
-     }
+    function changeOwner(address newOwner) external onlyOwner {
+        require(newOwner != address(0) && newOwner != owner);
+        owner = newOwner;
+    }
 }
