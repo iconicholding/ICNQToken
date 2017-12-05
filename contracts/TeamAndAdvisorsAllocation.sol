@@ -3,6 +3,11 @@ pragma solidity 0.4.18;
 import './ICNQToken.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
+/**
+ * @title Team And Advisors contract - Keep locked ICNQ tokens allocated to team and advisors for a determined time.
+ * @author Gustavo Guimaraes - <gustavoguimaraes@gmail.com>
+ */
+
 contract TeamAndAdvisorsAllocation {
     using SafeMath for uint;
     address public owner;

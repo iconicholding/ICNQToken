@@ -6,9 +6,10 @@ import "./TeamAndAdvisorsAllocation.sol";
 import "./ICNQToken.sol";
 
 /**
- * @title ICNQ Crowdsale contract - crowdsale contract for the APA tokens.
+ * @title ICNQ Crowdsale contract - crowdsale contract for the ICNQ tokens.
  * @author Gustavo Guimaraes - <gustavoguimaraes@gmail.com>
  */
+
 contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     // bonus milestones
     uint256 public presaleEndTime;
@@ -34,7 +35,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
             uint256 _rate,
             address _wallet
         )
-
+        public
         FinalizableCrowdsale()
         Crowdsale(_startTime, _endTime, _rate, _wallet)
     {
