@@ -94,6 +94,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         token.mint(wallet, BOUNTY_CAMPAIGN_SHARE); // allocate BOUNTY_CAMPAIGN_SHARE to company wallet as well
         token.mint(teamAndAdvisorsAllocation, TEAM_ADVISORS_SHARE);
 
+        token.finishMinting();
         ICNQToken(token).unpause();
         super.finalization();
     }
