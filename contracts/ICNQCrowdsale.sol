@@ -11,6 +11,7 @@ import "./ICNQToken.sol";
  */
 
 contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
+
     // bonus milestones
     uint256 public presaleEndTime;
     uint256 public firstBonusEndTime;
@@ -24,6 +25,8 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     uint256 public constant BOUNTY_CAMPAIGN_SHARE = 2000000e18; // 2M
 
     TeamAndAdvisorsAllocation public teamAndAdvisorsAllocation;
+
+    event PrivateInvestorTokenPurchase(address indexed investor, uint256 rate, uint256 bonus, uint weiAmount);
 
     function ICNQCrowdsale
         (
@@ -48,6 +51,34 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     }
 
     /**
+     * @dev Mint tokens for private investors before crowdsale starts
+     * @param investorsAddress Purchaser's address
+     * @param rate Rate of the purchase
+     * @param bonus Number that represents the bonus
+     * @param weiAmount Amount that the investors sent during the private sale period
+     */
+    function mintTokenForPrivateInvestors(address investorsAddress, uint256 rate, uint256 bonus, uint256 weiAmount)
+        external
+        onlyOwner
+    {
+        uint256 tokens = rate.mul(weiAmount);
+        uint256 tokenBonus = tokens.mul(bonus).div(100);
+        tokens = tokens.add(tokenBonus);
+
+        token.mint(investorsAddress, tokens);
+        PrivateInvestorTokenPurchase(investorsAddress, rate, bonus, weiAmount);
+    }
+
+    /**
+     * @dev change crowdsale rate
+     * @param newRate Figure that corresponds to the new rate per token
+     */
+    function setRate(uint256 newRate) external onlyOwner {
+        require(newRate != 0);
+        rate = newRate;
+    }
+
+    /**
      * @dev payable function that allow token purchases
      * @param beneficiary Address of the purchaser
      */
@@ -60,7 +91,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         require(validPurchase() && token.totalSupply() <= TOTAL_CROWDSALE);
 
         if (now >= startTime && now <= presaleEndTime)
-            require(checkPreSaleCap());
+            require(token.totalSupply() <= PRE_SALE);
 
         uint256 weiAmount = msg.value;
         uint256 bonus = getBonusTier();
@@ -104,18 +135,10 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
      */
 
      /**
-     * @dev checks whether it is pre sale and if there is minimum purchase requirement
-     * @return truthy if token total supply is less than PRE_SALE
-     */
-    function checkPreSaleCap() internal returns (bool) {
-        return token.totalSupply() <= PRE_SALE;
-    }
-
-     /**
      * @dev Fetches Bonus tier percentage per bonus milestones
      * @return uint256 representing percentage of the bonus tier
      */
-    function getBonusTier() internal returns (uint256) {
+    function getBonusTier() internal view returns (uint256) {
         bool preSalePeriod = now >= startTime && now <= presaleEndTime; //  50% bonus
         bool firstBonusSalesPeriod = now >= presaleEndTime && now <= firstBonusEndTime; // 10% bonus
         bool secondBonusSalesPeriod = now > firstBonusEndTime && now <= secondBonusEndTime; // 5% bonus
