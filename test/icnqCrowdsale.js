@@ -18,8 +18,8 @@ contract(
     const value = new BigNumber(1e18);
 
     const expectedCompanyTokens = new BigNumber(2000000e18); // 2M
-    const expectedTeamAndAdvisorTokens = new BigNumber(4000000e18); // 4M
-    const expectedBountyCampaignTokens = new BigNumber(2000000e18); // 2M
+    const expectedTeamAndAdvisorTokens = new BigNumber(3100000e18); // 3.1M
+    const expectedBountyCampaignTokens = new BigNumber(1000000e18); // 1M
 
     const dayInSecs = 86400;
 
@@ -400,68 +400,6 @@ contract(
         tokenBalanceFounder1.should.be.bignumber.equal(800);
         tokenBalanceFounder2.should.be.bignumber.equal(1000);
       });
-
-      // it('does NOT unlock founders allocation before the unlock period is up', async function() {
-      //   try {
-      //     await teamAndAdvisorsAllocationsContract.unlock({
-      //       from: owner
-      //     });
-      //     assert.fail();
-      //   } catch (e) {
-      //     ensuresException(e);
-      //   }
-      //
-      //   const tokensTransferred = await teamAndAdvisorsAllocationsContract.tokensTransferred();
-      //   tokensTransferred.should.be.bignumber.equal(0);
-      // });
-
-      // it('does NOT allow other person rather than owner to unlock token allocation', async function() {
-      //   await timer(dayInSecs * 365);
-      //
-      //   try {
-      //     await teamAndAdvisorsAllocationsContract.unlock({
-      //       from: founder1
-      //     });
-      //     assert.fail();
-      //   } catch (e) {
-      //     ensuresException(e);
-      //   }
-      //
-      //   const tokensTransferred = await teamAndAdvisorsAllocationsContract.tokensTransferred();
-      //   tokensTransferred.should.be.bignumber.equal(0);
-      // });
-
-      //   it('unlocks all tokens after unlock period is up', async function() {
-      //     let tokensTransferred;
-      //     let companyWalletBalance;
-      //
-      //     tokensTransferred = await teamAndAdvisorsAllocationsContract.tokensTransferred();
-      //     tokensTransferred.should.be.bignumber.equal(0);
-      //
-      //     companyWalletBalance = await token.balanceOf(wallet);
-      //     companyWalletBalance.should.be.bignumber.equal(
-      //       expectedCompanyTokens.add(expectedBountyCampaignTokens)
-      //     );
-      //
-      //     await timer(dayInSecs * 366);
-      //
-      //     await teamAndAdvisorsAllocationsContract.unlock({
-      //       from: owner
-      //     });
-      //
-      //     companyWalletBalance = await token.balanceOf(wallet);
-      //     // bounty tokens + company tokens + team and advisors
-      //     companyWalletBalance.should.be.bignumber.equal(
-      //       expectedCompanyTokens
-      //         .add(expectedBountyCampaignTokens)
-      //         .add(expectedTeamAndAdvisorTokens)
-      //     );
-      //
-      //     tokensTransferred = await teamAndAdvisorsAllocationsContract.tokensTransferred();
-      //     tokensTransferred.should.be.bignumber.equal(
-      //       expectedTeamAndAdvisorTokens
-      //     );
-      //   });
     });
   }
 );

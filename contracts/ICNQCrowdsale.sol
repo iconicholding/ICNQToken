@@ -18,11 +18,18 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     uint256 public secondBonusEndTime;
 
     // token supply figures
-    uint256 constant public PRE_SALE = 750000e18; // 750K
     uint256 constant public TOTAL_CROWDSALE = 12000000e18; // 12M
+    uint256 constant public PRE_SALE = 750000e18; // 750K
+
+    // below are not in the contract yet.
+    uint256 constant public CROWD_SALE = 6500000e18; // 6.5M
+    uint256 public constant INSTITUTIONAL_SHARE = 4650000e18; // 4.65M
+    uint256 public constant FRIENDS_AND_FAMILY_PRE_SALE = 2000000e18; // 2M
+
+    uint256 public constant TEAM_ADVISORS_SHARE = 3100000e18; // 3.1M
+
     uint256 public constant COMPANY_SHARE = 2000000e18; // 2M
-    uint256 public constant TEAM_ADVISORS_SHARE = 4000000e18; // 4M
-    uint256 public constant BOUNTY_CAMPAIGN_SHARE = 2000000e18; // 2M
+    uint256 public constant BOUNTY_CAMPAIGN_SHARE = 1000000e18; // 1M
 
     TeamAndAdvisorsAllocation public teamAndAdvisorsAllocation;
 
