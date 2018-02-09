@@ -18,22 +18,27 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     uint256 public secondBonusEndTime;
 
     // token supply figures
-    uint256 constant public TOTAL_CROWDSALE = 12000000e18; // 12M
-    uint256 constant public PRE_SALE = 750000e18; // 750K
+    uint256 constant public TOTAL_TOKENS_SUPPLY = 12000000e18; // 12M
+    uint256 constant public TOTAL_TOKENS_FOR_CROWDSALE = 6500000e18; // 6.5M
+    uint256 constant public PRE_SALE_TOTAL_TOKENS = 750000e18; // 750K
 
-    // below are not in the contract yet.
-    uint256 constant public CROWD_SALE = 6500000e18; // 6.5M
     uint256 public constant INSTITUTIONAL_SHARE = 4650000e18; // 4.65M
     uint256 public constant FRIENDS_AND_FAMILY_PRE_SALE = 2000000e18; // 2M
+    uint256 public constant PRIVATE_SALE_TOTAL = INSTITUTIONAL_SHARE + FRIENDS_AND_FAMILY_PRE_SALE;
 
     uint256 public constant TEAM_ADVISORS_SHARE = 3100000e18; // 3.1M
-
     uint256 public constant COMPANY_SHARE = 2000000e18; // 2M
     uint256 public constant BOUNTY_CAMPAIGN_SHARE = 1000000e18; // 1M
 
-    TeamAndAdvisorsAllocation public teamAndAdvisorsAllocation;
+    address public teamAndAdvisorsAllocation;
 
-    event PrivateInvestorTokenPurchase(address indexed investor, uint256 rate, uint256 bonus, uint weiAmount);
+    // remainderPurchaser and remainderTokens info saved in the contract
+    // used for reference for contract owner to send refund if any to last purchaser after end of crowdsale
+    address public remainderPurchaser;
+    uint256 public remainderAmount;
+
+    event PrivateInvestorTokenPurchase(address indexed investor, uint256 tokensPurchased);
+    event TokenRateChanged(uint256 previousRate, uint256 newRate);
 
     function ICNQCrowdsale
         (
@@ -60,20 +65,17 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     /**
      * @dev Mint tokens for private investors before crowdsale starts
      * @param investorsAddress Purchaser's address
-     * @param rate Rate of the purchase
-     * @param bonus Number that represents the bonus
-     * @param weiAmount Amount that the investors sent during the private sale period
+     * @param tokensPurchased Tokens purchased during pre crowdsale
      */
-    function mintTokenForPrivateInvestors(address investorsAddress, uint256 rate, uint256 bonus, uint256 weiAmount)
+    function mintTokenForPrivateInvestors(address investorsAddress, uint256 tokensPurchased)
         external
         onlyOwner
     {
-        uint256 tokens = rate.mul(weiAmount);
-        uint256 tokenBonus = tokens.mul(bonus).div(100);
-        tokens = tokens.add(tokenBonus);
+        require(now < startTime && investorsAddress != address(0));
+        require(token.totalSupply().add(tokensPurchased) <= PRIVATE_SALE_TOTAL);
 
-        token.mint(investorsAddress, tokens);
-        PrivateInvestorTokenPurchase(investorsAddress, rate, bonus, weiAmount);
+        token.mint(investorsAddress, tokensPurchased);
+        PrivateInvestorTokenPurchase(investorsAddress, tokensPurchased);
     }
 
     /**
@@ -82,7 +84,18 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
      */
     function setRate(uint256 newRate) external onlyOwner {
         require(newRate != 0);
+
+        TokenRateChanged(rate, newRate);
         rate = newRate;
+    }
+
+    /**
+     * @dev Set the address which should receive the vested team tokens share on finalization
+     * @param _teamAndAdvisorsAllocation address of team and advisor allocation contract
+     */
+    function setTeamWalletAddress(address _teamAndAdvisorsAllocation) public onlyOwner {
+        require(_teamAndAdvisorsAllocation != address(0x0));
+        teamAndAdvisorsAllocation = _teamAndAdvisorsAllocation;
     }
 
     /**
@@ -95,10 +108,10 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         payable
     {
         require(beneficiary != address(0));
-        require(validPurchase() && token.totalSupply() <= TOTAL_CROWDSALE);
+        require(validPurchase() && token.totalSupply() <= TOTAL_TOKENS_FOR_CROWDSALE);
 
         if (now >= startTime && now <= presaleEndTime)
-            require(token.totalSupply() <= PRE_SALE);
+            require(token.totalSupply() <= PRE_SALE_TOTAL_TOKENS);
 
         uint256 weiAmount = msg.value;
         uint256 bonus = getBonusTier();
@@ -112,6 +125,16 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
             tokens = tokens.add(tokensIncludingBonus);
         }
 
+        //remainder logic
+        if (token.totalSupply().add(tokens) > TOTAL_TOKENS_FOR_CROWDSALE) {
+            tokens = TOTAL_TOKENS_FOR_CROWDSALE.sub(token.totalSupply());
+            weiAmount = tokens.div(rate);
+
+            // save info so as to refund purchaser after crowdsale's end
+            remainderPurchaser = msg.sender;
+            remainderAmount = msg.value.sub(weiAmount);
+        }
+
         // update state
         weiRaised = weiRaised.add(weiAmount);
 
@@ -122,15 +145,32 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         forwardFunds();
     }
 
+    // overriding Crowdsale#hasEnded to add cap logic
+    // @return true if crowdsale event has ended
+    function hasEnded() public view returns (bool) {
+        if (token.totalSupply() == TOTAL_TOKENS_FOR_CROWDSALE) {
+            return true;
+        }
+
+        return super.hasEnded();
+    }
+
     /**
      * @dev finalizes crowdsale
      */
     function finalization() internal {
-        teamAndAdvisorsAllocation = new TeamAndAdvisorsAllocation(owner, token, wallet);
+        // This must have been set manually prior to finalize().
+        require(teamAndAdvisorsAllocation != address(0));
 
         token.mint(wallet, COMPANY_SHARE);
         token.mint(wallet, BOUNTY_CAMPAIGN_SHARE); // allocate BOUNTY_CAMPAIGN_SHARE to company wallet as well
         token.mint(teamAndAdvisorsAllocation, TEAM_ADVISORS_SHARE);
+
+        if (TOTAL_TOKENS_SUPPLY > token.totalSupply()) {
+            uint256 remainingTokens = TOTAL_TOKENS_SUPPLY.sub(token.totalSupply());
+            // burn remaining tokens
+            token.mint(address(0), remainingTokens);
+        }
 
         token.finishMinting();
         ICNQToken(token).unpause();
