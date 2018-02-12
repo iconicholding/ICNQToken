@@ -1,4 +1,4 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.19;
 
 import "zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
@@ -187,7 +187,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
      */
     function getBonusTier() internal view returns (uint256) {
         bool preSalePeriod = now >= startTime && now <= presaleEndTime; //  50% bonus
-        bool firstBonusSalesPeriod = now >= presaleEndTime && now <= firstBonusEndTime; // 10% bonus
+        bool firstBonusSalesPeriod = now > presaleEndTime && now <= firstBonusEndTime; // 10% bonus
         bool secondBonusSalesPeriod = now > firstBonusEndTime && now <= secondBonusEndTime; // 5% bonus
         bool thirdBonusSalesPeriod = now > secondBonusEndTime; //  0% bonus
 
