@@ -4,12 +4,13 @@ import "zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./TeamAndAdvisorsAllocation.sol";
 import "./ICNQToken.sol";
+import "./Whitelist.sol";
+
 
 /**
  * @title ICNQ Crowdsale contract - crowdsale contract for the ICNQ tokens.
  * @author Gustavo Guimaraes - <gustavoguimaraes@gmail.com>
  */
-
 contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
 
     // bonus milestones
@@ -40,6 +41,20 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     event PrivateInvestorTokenPurchase(address indexed investor, uint256 tokensPurchased);
     event TokenRateChanged(uint256 previousRate, uint256 newRate);
 
+    // external contracts
+    Whitelist public whitelist;
+
+    /**
+     * @dev Contract constructor function
+     * @param _startTime The timestamp of the beginning of the crowdsale
+     * @param _presaleEndTime End of presale in timestamp
+     * @param _firstBonusEndTime End of first bonus milestone in timestamp
+     * @param _secondBonusEndTime Timestamp of end of second bonus milestone
+     * @param _endTime Timestamp when the crowdsale will finish
+     * @param _whitelist contract containing the whitelisted addresses
+     * @param _rate The token rate per ETH
+     * @param _wallet Multisig wallet that will hold the crowdsale funds.
+     */
     function ICNQCrowdsale
         (
             uint256 _startTime,
@@ -47,6 +62,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
             uint256 _firstBonusEndTime,
             uint256 _secondBonusEndTime,
             uint256 _endTime,
+            address _whitelist,
             uint256 _rate,
             address _wallet
         )
@@ -54,12 +70,20 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         FinalizableCrowdsale()
         Crowdsale(_startTime, _endTime, _rate, _wallet)
     {
+        require(_whitelist != address(0));
+
         // setup for token bonus milestones
         presaleEndTime = _presaleEndTime;
         firstBonusEndTime = _firstBonusEndTime;
         secondBonusEndTime = _secondBonusEndTime;
 
+        whitelist = Whitelist(_whitelist);
         ICNQToken(token).pause();
+    }
+
+    modifier whitelisted(address beneficiary) {
+        require(whitelist.isWhitelisted(beneficiary));
+        _;
     }
 
     /**
@@ -105,6 +129,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     function buyTokens(address beneficiary)
         public
         whenNotPaused
+        whitelisted(beneficiary)
         payable
     {
         require(beneficiary != address(0));

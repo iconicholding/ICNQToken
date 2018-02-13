@@ -3,8 +3,10 @@ const ICNQCrowdsale = artifacts.require('./ICNQCrowdsale.sol');
 const TeamAndAdvisorsAllocation = artifacts.require(
     './TeamAndAdvisorsAllocation.sol'
 );
+const Whitelist = artifacts.require('./Whitelist.sol');
 
 import { should, getBlockNow, ensuresException } from './helpers/utils';
+import must from 'chai';
 import { timer } from './helpers/timer';
 const BigNumber = web3.BigNumber;
 
@@ -30,7 +32,7 @@ contract(
             firstBonusEndTime,
             secondBonusEndTime,
             endTime;
-        let crowdsale, token, teamAndAdvisorsAllocations;
+        let crowdsale, token, teamAndAdvisorsAllocations, whitelist;
 
         const newCrowdsale = rate => {
             startTime = getBlockNow() + 20; // crowdsale starts in 2 seconds
@@ -39,15 +41,19 @@ contract(
             secondBonusEndTime = startTime + dayInSecs * 40; // 40 days
             endTime = startTime + dayInSecs * 60; // 60 days
 
-            return ICNQCrowdsale.new(
-                startTime,
-                presaleEndTime,
-                firstBonusEndTime,
-                secondBonusEndTime,
-                endTime,
-                rate,
-                wallet
-            );
+            return Whitelist.new().then(whitelistRegistry => {
+                whitelist = whitelistRegistry;
+                return ICNQCrowdsale.new(
+                    startTime,
+                    presaleEndTime,
+                    firstBonusEndTime,
+                    secondBonusEndTime,
+                    endTime,
+                    whitelist.address,
+                    rate,
+                    wallet
+                );
+            });
         };
 
         beforeEach('initialize contract', async () => {
@@ -62,6 +68,11 @@ contract(
         it('has a normal crowdsale rate', async () => {
             const crowdsaleRate = await crowdsale.rate();
             crowdsaleRate.should.be.bignumber.equal(rate);
+        });
+
+        it('has a whitelist contract', async () => {
+            const whitelistContract = await crowdsale.whitelist();
+            whitelistContract.should.equal(whitelist.address);
         });
 
         it('starts with token paused', async () => {
@@ -186,7 +197,94 @@ contract(
             });
         });
 
+        describe('whitelist', () => {
+            it('only allows owner to add to the whitelist', async () => {
+                await timer(dayInSecs);
+
+                try {
+                    await whitelist.addToWhitelist([buyer, buyer2], {
+                        from: buyer
+                    });
+                    assert.fail();
+                } catch (e) {
+                    ensuresException(e);
+                }
+
+                let isBuyerWhitelisted = await whitelist.isWhitelisted.call(
+                    buyer
+                );
+                isBuyerWhitelisted.should.be.false;
+
+                await whitelist.addToWhitelist([buyer, buyer2], {
+                    from: owner
+                });
+
+                isBuyerWhitelisted = await whitelist.isWhitelisted.call(buyer);
+                isBuyerWhitelisted.should.be.true;
+            });
+
+            it('only allows owner to remove from the whitelist', async () => {
+                await timer(dayInSecs);
+                await whitelist.addToWhitelist([buyer, buyer2], {
+                    from: owner
+                });
+
+                try {
+                    await whitelist.removeFromWhitelist([buyer], {
+                        from: buyer2
+                    });
+                    assert.fail();
+                } catch (e) {
+                    ensuresException(e);
+                }
+
+                let isBuyerWhitelisted = await whitelist.isWhitelisted.call(
+                    buyer2
+                );
+                isBuyerWhitelisted.should.be.true;
+
+                await whitelist.removeFromWhitelist([buyer], { from: owner });
+
+                isBuyerWhitelisted = await whitelist.isWhitelisted.call(buyer);
+                isBuyerWhitelisted.should.be.false;
+            });
+
+            it('shows whitelist addresses', async () => {
+                await timer(dayInSecs);
+                await whitelist.addToWhitelist([buyer, buyer2], {
+                    from: owner
+                });
+
+                const isBuyerWhitelisted = await whitelist.isWhitelisted.call(
+                    buyer
+                );
+                const isBuyer2Whitelisted = await whitelist.isWhitelisted.call(
+                    buyer2
+                );
+
+                isBuyerWhitelisted.should.be.true;
+                isBuyer2Whitelisted.should.be.true;
+            });
+
+            it('has WhitelistUpdated event', async () => {
+                await timer(dayInSecs);
+                const { logs } = await whitelist.addToWhitelist(
+                    [buyer, buyer2],
+                    {
+                        from: owner
+                    }
+                );
+
+                const event = logs.find(e => e.event === 'WhitelistUpdated');
+                must.expect(event).to.exist;
+            });
+        });
+
         describe('token purchases plus their bonuses', () => {
+            beforeEach(async () => {
+                await whitelist.addToWhitelist([buyer, buyer2]);
+            });
+
             it('does NOT buy tokens if crowdsale is paused', async () => {
                 await timer(dayInSecs * 42);
                 await crowdsale.pause();
@@ -217,10 +315,33 @@ contract(
                 buyerBalance.should.be.bignumber.equal(75e18); // 50% bonus
             });
 
+            it('does NOT allow un-whitelisted purchasers to participate in token sale', async () => {
+                crowdsale = await newCrowdsale(rate);
+                token = ICNQToken.at(await crowdsale.token());
+                await timer(dayInSecs * 42);
+
+                try {
+                    await crowdsale.buyTokens(buyer, { value });
+                    assert.fail();
+                } catch (e) {
+                    ensuresException(e);
+                }
+                const buyerBalance = await token.balanceOf(buyer);
+                buyerBalance.should.be.bignumber.equal(0);
+
+                await whitelist.addToWhitelist([buyer2]);
+
+                await crowdsale.buyTokens(buyer2, { value });
+
+                const buyer2Balance = await token.balanceOf(buyer2);
+                buyer2Balance.should.be.bignumber.equal(50e18);
+            });
+
             it('stops presale once the presaleCap is reached', async () => {
                 newRate = new BigNumber(700000);
                 crowdsale = await newCrowdsale(newRate);
                 token = ICNQToken.at(await crowdsale.token());
+                await whitelist.addToWhitelist([buyer, buyer2]);
                 await timer(50); // within presale period
 
                 await crowdsale.buyTokens(buyer2, { value });
@@ -271,7 +392,7 @@ contract(
             it('only mints tokens up to crowdsale cap and when more eth is sent last user purchase info is saved in contract', async () => {
                 crowdsale = await newCrowdsale(totalTokensForCrowdsale);
                 token = ICNQToken.at(await crowdsale.token());
-
+                await whitelist.addToWhitelist([buyer, buyer2]);
                 await timer(dayInSecs);
 
                 await crowdsale.buyTokens(buyer, { from: buyer, value: 2e18 });
@@ -295,6 +416,10 @@ contract(
         });
 
         describe('finalize crowdsale', () => {
+            beforeEach(async () => {
+                await whitelist.addToWhitelist([buyer, buyer2]);
+            });
+
             it('does not allow trading of tokens before the crowdsale finalizes', async () => {
                 timer(dayInSecs * 42);
                 await crowdsale.buyTokens(buyer, { value: 1e18, from: buyer });
@@ -368,7 +493,6 @@ contract(
                         await crowdsale.token(),
                         getBlockNow() + dayInSecs * 90
                     );
-
                     timer(dayInSecs * 62);
 
                     await crowdsale.setTeamWalletAddress(
