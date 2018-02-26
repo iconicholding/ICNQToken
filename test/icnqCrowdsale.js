@@ -27,18 +27,12 @@ contract(
 
         const dayInSecs = 86400;
 
-        let startTime,
-            presaleEndTime,
-            firstBonusEndTime,
-            secondBonusEndTime,
-            endTime;
+        let startTime, presaleEndTime, endTime;
         let crowdsale, token, teamAndAdvisorsAllocations, whitelist;
 
         const newCrowdsale = rate => {
             startTime = getBlockNow() + 20; // crowdsale starts in 2 seconds
             presaleEndTime = startTime + dayInSecs * 20; // 20 days
-            firstBonusEndTime = startTime + dayInSecs * 30; // 30 days
-            secondBonusEndTime = startTime + dayInSecs * 40; // 40 days
             endTime = startTime + dayInSecs * 60; // 60 days
 
             return Whitelist.new().then(whitelistRegistry => {
@@ -46,8 +40,6 @@ contract(
                 return ICNQCrowdsale.new(
                     startTime,
                     presaleEndTime,
-                    firstBonusEndTime,
-                    secondBonusEndTime,
                     endTime,
                     whitelist.address,
                     rate,
@@ -307,7 +299,7 @@ contract(
                 buyerBalance.should.be.bignumber.equal(50e18);
             });
 
-            it('has bonus of 20% during the presale', async () => {
+            it('has bonus of 50% during the presale', async () => {
                 await timer(50); // within presale period
                 await crowdsale.buyTokens(buyer2, { value });
 
@@ -365,24 +357,8 @@ contract(
                 purchaserBalance.should.be.bignumber.equal(75e18); // 50% bonus
             });
 
-            it('gives out 10% bonus during first crowdsale bonus period', async () => {
-                await timer(dayInSecs * 22);
-                await crowdsale.buyTokens(buyer2, { value });
-
-                const buyerBalance = await token.balanceOf(buyer2);
-                buyerBalance.should.be.bignumber.equal(55e18); // 10% bonus
-            });
-
-            it('provides 5% bonus during second crowdsale bonus period', async () => {
+            it('provides 0% bonus after the presale crowdsale bonus period', async () => {
                 timer(dayInSecs * 32);
-                await crowdsale.buyTokens(buyer2, { value });
-
-                const buyerBalance = await token.balanceOf(buyer2);
-                buyerBalance.should.be.bignumber.equal(575e17); // 5% bonus
-            });
-
-            it('provides 0% bonus after second crowdsale bonus period', async () => {
-                timer(dayInSecs * 42);
                 await crowdsale.buyTokens(buyer2, { value });
 
                 const buyerBalance = await token.balanceOf(buyer2);

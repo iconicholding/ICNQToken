@@ -12,11 +12,7 @@ import "./Whitelist.sol";
  * @author Gustavo Guimaraes - <gustavoguimaraes@gmail.com>
  */
 contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
-
-    // bonus milestones
     uint256 public presaleEndTime;
-    uint256 public firstBonusEndTime;
-    uint256 public secondBonusEndTime;
 
     // token supply figures
     uint256 constant public TOTAL_TOKENS_SUPPLY = 12000000e18; // 12M
@@ -48,8 +44,6 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
      * @dev Contract constructor function
      * @param _startTime The timestamp of the beginning of the crowdsale
      * @param _presaleEndTime End of presale in timestamp
-     * @param _firstBonusEndTime End of first bonus milestone in timestamp
-     * @param _secondBonusEndTime Timestamp of end of second bonus milestone
      * @param _endTime Timestamp when the crowdsale will finish
      * @param _whitelist contract containing the whitelisted addresses
      * @param _rate The token rate per ETH
@@ -59,8 +53,6 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         (
             uint256 _startTime,
             uint256 _presaleEndTime,
-            uint256 _firstBonusEndTime,
-            uint256 _secondBonusEndTime,
             uint256 _endTime,
             address _whitelist,
             uint256 _rate,
@@ -72,11 +64,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     {
         require(_whitelist != address(0));
 
-        // setup for token bonus milestones
         presaleEndTime = _presaleEndTime;
-        firstBonusEndTime = _firstBonusEndTime;
-        secondBonusEndTime = _secondBonusEndTime;
-
         whitelist = Whitelist(_whitelist);
         ICNQToken(token).pause();
     }
@@ -135,11 +123,14 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         require(beneficiary != address(0));
         require(validPurchase() && token.totalSupply() <= TOTAL_TOKENS_FOR_CROWDSALE);
 
-        if (now >= startTime && now <= presaleEndTime)
+        uint256 bonus;
+
+        if (now >= startTime && now <= presaleEndTime) {
             require(token.totalSupply() <= PRE_SALE_TOTAL_TOKENS);
+            bonus = 50;
+        }
 
         uint256 weiAmount = msg.value;
-        uint256 bonus = getBonusTier();
 
         // calculate token amount to be created
         uint256 tokens = weiAmount.mul(rate);
@@ -200,26 +191,6 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         token.finishMinting();
         ICNQToken(token).unpause();
         super.finalization();
-    }
-
-    /**
-     * internal functions
-     */
-
-     /**
-     * @dev Fetches Bonus tier percentage per bonus milestones
-     * @return uint256 representing percentage of the bonus tier
-     */
-    function getBonusTier() internal view returns (uint256) {
-        bool preSalePeriod = now >= startTime && now <= presaleEndTime; //  50% bonus
-        bool firstBonusSalesPeriod = now > presaleEndTime && now <= firstBonusEndTime; // 10% bonus
-        bool secondBonusSalesPeriod = now > firstBonusEndTime && now <= secondBonusEndTime; // 5% bonus
-        bool thirdBonusSalesPeriod = now > secondBonusEndTime; //  0% bonus
-
-        if (preSalePeriod) return 50;
-        if (firstBonusSalesPeriod) return 10;
-        if (secondBonusSalesPeriod) return 15;
-        if (thirdBonusSalesPeriod) return 0;
     }
 
     /**
