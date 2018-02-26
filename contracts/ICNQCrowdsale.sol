@@ -120,7 +120,8 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         whitelisted(beneficiary)
         payable
     {
-        require(beneficiary != address(0));
+        // minimum of 1 ether for purchase in the public presale and sale
+        require(beneficiary != address(0) && msg.value >= 1 ether);
         require(validPurchase() && token.totalSupply() <= TOTAL_TOKENS_FOR_CROWDSALE);
 
         uint256 bonus;

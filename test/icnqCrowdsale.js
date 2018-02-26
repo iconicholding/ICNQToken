@@ -299,6 +299,26 @@ contract(
                 buyerBalance.should.be.bignumber.equal(50e18);
             });
 
+            it('does NOT accept purchase that is less than 1 ether', async () => {
+                await timer(dayInSecs * 42);
+                let buyerBalance;
+
+                try {
+                    await crowdsale.buyTokens(buyer, { value: 1e17 });
+                    assert.fail();
+                } catch (e) {
+                    ensuresException(e);
+                }
+
+                buyerBalance = await token.balanceOf(buyer);
+                buyerBalance.should.be.bignumber.equal(0);
+
+                await crowdsale.buyTokens(buyer, { value });
+
+                buyerBalance = await token.balanceOf(buyer);
+                buyerBalance.should.be.bignumber.equal(50e18);
+            });
+
             it('has bonus of 50% during the presale', async () => {
                 await timer(50); // within presale period
                 await crowdsale.buyTokens(buyer2, { value });
