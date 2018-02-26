@@ -19,7 +19,7 @@ contract(
         const cap = new BigNumber(1000000000e18);
 
         const value = new BigNumber(1e18);
-        const totalTokensForCrowdsale = new BigNumber(6500000);
+        const totalTokensForCrowdsale = new BigNumber(3000000); // 3M
 
         const expectedCompanyTokens = new BigNumber(2000000e18); // 2M
         const expectedTeamAndAdvisorTokens = new BigNumber(3100000e18); // 3.1M
@@ -394,7 +394,9 @@ contract(
                 await crowdsale.buyTokens(buyer, { from: buyer, value: 2e18 });
 
                 const buyerBalance = await token.balanceOf(buyer);
-                buyerBalance.should.be.bignumber.equal(6500000e18);
+                buyerBalance.should.be.bignumber.equal(
+                    totalTokensForCrowdsale.mul(1e18)
+                );
 
                 const remainderPurchaser = await crowdsale.remainderPurchaser();
                 remainderPurchaser.should.equal(buyer);

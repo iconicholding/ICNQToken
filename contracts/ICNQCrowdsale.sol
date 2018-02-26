@@ -15,13 +15,15 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     uint256 public presaleEndTime;
 
     // token supply figures
-    uint256 constant public TOTAL_TOKENS_SUPPLY = 12000000e18; // 12M
-    uint256 constant public TOTAL_TOKENS_FOR_CROWDSALE = 6500000e18; // 6.5M
+    uint256 constant public TOTAL_TOKENS_SUPPLY = 20000000e18; // 20M
+    uint256 constant public TOTAL_TOKENS_FOR_CROWDSALE = 3000000e18; // 3M
     uint256 constant public PRE_SALE_TOTAL_TOKENS = 750000e18; // 750K
 
-    uint256 public constant INSTITUTIONAL_SHARE = 4650000e18; // 4.65M
-    uint256 public constant FRIENDS_AND_FAMILY_PRE_SALE = 2000000e18; // 2M
-    uint256 public constant PRIVATE_SALE_TOTAL = INSTITUTIONAL_SHARE + FRIENDS_AND_FAMILY_PRE_SALE;
+    uint256 public constant OPTIONAL_POOL = 4650000e18; // 4.65M
+    uint256 public constant FINLAB_PRESALE = 2000000e18; // 2M
+    uint256 public constant EOS = 2000000e18; // 2M
+    uint256 public constant US_INSTITUTIONAL = 1500000e18; // 1.5M
+    uint256 public constant PRIVATE_SALE_TOTAL = OPTIONAL_POOL + FINLAB_PRESALE + EOS + US_INSTITUTIONAL;
 
     uint256 public constant TEAM_ADVISORS_SHARE = 3100000e18; // 3.1M
     uint256 public constant COMPANY_SHARE = 2000000e18; // 2M
