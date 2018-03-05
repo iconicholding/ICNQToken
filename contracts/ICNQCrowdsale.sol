@@ -16,14 +16,17 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
 
     // token supply figures
     uint256 constant public TOTAL_TOKENS_SUPPLY = 20000000e18; // 20M
-    uint256 constant public TOTAL_TOKENS_FOR_CROWDSALE = 3000000e18; // 3M
-    uint256 constant public PRE_SALE_TOTAL_TOKENS = 750000e18; // 750K
 
     uint256 public constant OPTIONAL_POOL = 4650000e18; // 4.65M
     uint256 public constant FINLAB_PRESALE = 2000000e18; // 2M
     uint256 public constant EOS = 2000000e18; // 2M
     uint256 public constant US_INSTITUTIONAL = 1500000e18; // 1.5M
-    uint256 public constant PRIVATE_SALE_TOTAL = OPTIONAL_POOL + FINLAB_PRESALE + EOS + US_INSTITUTIONAL;
+    uint256 public constant PRIVATE_SALE_TOTAL = OPTIONAL_POOL + FINLAB_PRESALE + EOS + US_INSTITUTIONAL; // 10.15M
+
+    // 10.15 of the private sale + 750K for presale
+    uint256 constant public PRE_SALE_TOTAL_TOKENS = PRIVATE_SALE_TOTAL + 750000e18;
+    // 10.15 of the private sale + 750K for presale + 3M for crowdsale
+    uint256 constant public TOTAL_TOKENS_FOR_CROWDSALE = PRE_SALE_TOTAL_TOKENS + 3000000e18;
 
     uint256 public constant TEAM_ADVISORS_SHARE = 3100000e18; // 3.1M
     uint256 public constant COMPANY_SHARE = 2000000e18; // 2M
@@ -139,9 +142,9 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         uint256 tokens = weiAmount.mul(rate);
 
         if (bonus > 0) {
-            uint256 tokensIncludingBonus = tokens.mul(bonus).div(100);
+            uint256 bonusTokens = tokens.mul(bonus).div(100);
 
-            tokens = tokens.add(tokensIncludingBonus);
+            tokens = tokens.add(bonusTokens);
         }
 
         //remainder logic

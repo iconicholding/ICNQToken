@@ -19,7 +19,10 @@ contract(
         const cap = new BigNumber(1000000000e18);
 
         const value = new BigNumber(1e18);
-        const totalTokensForCrowdsale = new BigNumber(3000000); // 3M
+        // 10.15 of the private sale + 750K for presale + 3M for crowdsale
+        const totalTokensForCrowdsale = new BigNumber(13900000);
+        // 10.15 of the private sale + 750K for presale
+        const totalTokensForPresale = new BigNumber(10900000);
 
         const expectedCompanyTokens = new BigNumber(2000000e18); // 2M
         const expectedTeamAndAdvisorTokens = new BigNumber(3100000e18); // 3.1M
@@ -350,11 +353,11 @@ contract(
             });
 
             it('stops presale once the presaleCap is reached', async () => {
-                newRate = new BigNumber(700000);
+                newRate = new BigNumber(totalTokensForPresale.minus(5000000));
                 crowdsale = await newCrowdsale(newRate);
                 token = ICNQToken.at(await crowdsale.token());
                 await whitelist.addToWhitelist([buyer, buyer2]);
-                await timer(50); // within presale period
+                await timer(500); // within presale period
 
                 await crowdsale.buyTokens(buyer2, { value });
 
@@ -389,7 +392,7 @@ contract(
                 crowdsale = await newCrowdsale(totalTokensForCrowdsale);
                 token = ICNQToken.at(await crowdsale.token());
                 await whitelist.addToWhitelist([buyer, buyer2]);
-                await timer(dayInSecs);
+                await timer(dayInSecs * 21);
 
                 await crowdsale.buyTokens(buyer, { from: buyer, value: 2e18 });
 
