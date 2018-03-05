@@ -33,11 +33,6 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
 
     address public teamAndAdvisorsAllocation;
 
-    // remainderPurchaser and remainderTokens info saved in the contract
-    // used for reference for contract owner to send refund if any to last purchaser after end of crowdsale
-    address public remainderPurchaser;
-    uint256 public remainderAmount;
-
     event PrivateInvestorTokenPurchase(address indexed investor, uint256 tokensPurchased);
     event TokenRateChanged(uint256 previousRate, uint256 newRate);
 
@@ -151,9 +146,9 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
             tokens = TOTAL_TOKENS_FOR_CROWDSALE.sub(token.totalSupply());
             weiAmount = tokens.div(rate);
 
-            // save info so as to refund purchaser after crowdsale's end
-            remainderPurchaser = msg.sender;
-            remainderAmount = msg.value.sub(weiAmount);
+            // send remainder wei to sender
+            uint256 remainderAmount = msg.value.sub(weiAmount);
+            msg.sender.transfer(remainderAmount);
         }
 
         // update state
@@ -163,7 +158,7 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
 
         TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
-        forwardFunds();
+        forwardFunds(weiAmount);
     }
 
     // overriding Crowdsale#hasEnded to add cap logic
@@ -174,6 +169,12 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
         }
 
         return super.hasEnded();
+    }
+
+    // send ether to the fund collection wallet
+    // override to create custom fund forwarding mechanisms
+    function forwardFunds(uint256 weiAmount) internal {
+        wallet.transfer(weiAmount);
     }
 
     /**

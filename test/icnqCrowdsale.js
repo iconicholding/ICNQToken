@@ -388,11 +388,15 @@ contract(
                 buyerBalance.should.be.bignumber.equal(50e18); // 0% bonus
             });
 
-            it('only mints tokens up to crowdsale cap and when more eth is sent last user purchase info is saved in contract', async () => {
+            it('only mints tokens up to crowdsale cap and sends remaining wei back to the buyer', async () => {
                 crowdsale = await newCrowdsale(totalTokensForCrowdsale);
                 token = ICNQToken.at(await crowdsale.token());
                 await whitelist.addToWhitelist([buyer, buyer2]);
                 await timer(dayInSecs * 21);
+
+                const buyerWeiBalanceBeforePurchase = web3.eth.getBalance(
+                    buyer
+                );
 
                 await crowdsale.buyTokens(buyer, { from: buyer, value: 2e18 });
 
@@ -401,11 +405,14 @@ contract(
                     totalTokensForCrowdsale.mul(1e18)
                 );
 
-                const remainderPurchaser = await crowdsale.remainderPurchaser();
-                remainderPurchaser.should.equal(buyer);
+                const buyerWeiBalanceAfterPurchase = web3.eth.getBalance(buyer);
 
-                const remainder = await crowdsale.remainderAmount();
-                remainder.toNumber().should.be.equal(1e18);
+                buyerWeiBalanceAfterPurchase
+                    .toNumber()
+                    .should.be.approximately(
+                        buyerWeiBalanceBeforePurchase.toNumber() - 1e18,
+                        1e17
+                    );
 
                 try {
                     await crowdsale.buyTokens(buyer, { value, from: buyer });
