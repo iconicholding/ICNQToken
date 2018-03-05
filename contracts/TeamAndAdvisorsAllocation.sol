@@ -20,14 +20,14 @@ contract TeamAndAdvisorsAllocation is Ownable {
 
     /**
      * @dev constructor function that sets owner and token for the TeamAndAdvisorsAllocation contract
-     * @param token Token contract address for AllPublicArtToken
-     * @param oneYearFromNowInTimestamp Timestamp representing one year in the future
+     * @param tokenAddress Token contract address for AllPublicArtToken
+     * @param _unlockAt Timestamp representing one year in the future
      */
-    function TeamAndAdvisorsAllocation(address token, uint256 oneYearFromNowInTimestamp) public {
-        /* require(token != address(0) && oneYearFromNowInTimestamp > 0); */
+    function TeamAndAdvisorsAllocation(address tokenAddress, uint256 _unlockAt) public {
+        require(tokenAddress != address(0) && _unlockAt > now);
 
-        icnq = ICNQToken(token);
-        unlockedAt = oneYearFromNowInTimestamp;
+        icnq = ICNQToken(tokenAddress);
+        unlockedAt = _unlockAt;
     }
 
     /**

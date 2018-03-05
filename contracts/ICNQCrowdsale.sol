@@ -2,7 +2,6 @@ pragma solidity 0.4.19;
 
 import "zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
-import "./TeamAndAdvisorsAllocation.sol";
 import "./ICNQToken.sol";
 import "./Whitelist.sol";
 
@@ -111,7 +110,12 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
      * @param _teamAndAdvisorsAllocation address of team and advisor allocation contract
      */
     function setTeamWalletAddress(address _teamAndAdvisorsAllocation) public onlyOwner {
-        require(_teamAndAdvisorsAllocation != address(0x0));
+        // only able to set teamAndAdvisorsAllocation once.
+        // TeamAndAdvisorsAllocation contract requires token contract already deployed.
+        // token contract is created within crowdsale,
+        // thus the TeamAndAdvisorsAllocation must be set up after crowdsale's deployment
+        require(teamAndAdvisorsAllocation == address(0x0) && _teamAndAdvisorsAllocation != address(0x0));
+
         teamAndAdvisorsAllocation = _teamAndAdvisorsAllocation;
     }
 
@@ -127,24 +131,19 @@ contract ICNQCrowdsale is FinalizableCrowdsale, Pausable {
     {
         // minimum of 1 ether for purchase in the public presale and sale
         require(beneficiary != address(0) && msg.value >= 1 ether);
-        require(validPurchase() && token.totalSupply() <= TOTAL_TOKENS_FOR_CROWDSALE);
-
-        uint256 bonus;
-
-        if (now >= startTime && now <= presaleEndTime) {
-            require(token.totalSupply() <= PRE_SALE_TOTAL_TOKENS);
-            bonus = 50;
-        }
+        require(validPurchase() && token.totalSupply() < TOTAL_TOKENS_FOR_CROWDSALE);
 
         uint256 weiAmount = msg.value;
 
         // calculate token amount to be created
         uint256 tokens = weiAmount.mul(rate);
 
-        if (bonus > 0) {
+        if (now >= startTime && now <= presaleEndTime) {
+            uint256 bonus = 50;
             uint256 bonusTokens = tokens.mul(bonus).div(100);
 
             tokens = tokens.add(bonusTokens);
+            require(token.totalSupply().add(tokens) <= PRE_SALE_TOTAL_TOKENS);
         }
 
         //remainder logic
