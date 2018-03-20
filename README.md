@@ -1,50 +1,37 @@
+[<img src="https://iconiqlab.com/wp-content/uploads/2017/09/Full-Logo-Small-Transparent.png" alt="Iconiq Lab" />](https://iconiqlab.com)
+
 # ICNQ Token and Crowdsale Smart Contracts
+
+Iconiq Lab is an Initial Coin Offer and Token Launch (ICO) accelerator program. Iconiq Lab aims to provide the ICNQ Club Members and the mass crypto markets the highest quality ICO participation opportunities by sourcing, funding, advising, developing and accelerating the most promising crypto, blockchain and tokenizable startups to their own ICO.
+
+The ICNQ Club Membership Token grants its holders exclusive presale rights on accelerator program graduates. ICNQ Club Members will have platinum-level privileges such as exclusive access to presales and discounts on accelerator graduate’s ICOs. Additionally, ICNQ Club Members will have the ability to preview and provide feedback on program applicants to source only the most interesting startups, as well as contribute feedback to the token construction of program startups.
+
+This project contains the ICNQ ERC-20 token smart contract.
 
 ## Development
 
-**Dependencies**
+### Dependencies
+
+Please make sure you have the following dependencies installed on your machine 
 
 * `node@8.5.x`
 * `truffle@^4.0.1`
 * `ganache-cli@^6.0.x`
 * `zeppelin-solidity@1.4.X`
 
-## Setting Up
+### Installation
 
-* Clone this repository.
-
-* Install all [system dependencies](#development).
-
-  * `npm install`
-
-* Compile contract code
-  * `node_modules/.bin/truffle compile`
-
-## Running Tests
-
-    * `bash run_test.sh`
-
-# If you work on these contracts, write tests!
-
-**Testing Pattern**
-
-* a good pattern to use, when testing restrictions on contract is to structure this way:
-
-```javascript
-describe('testing user restriction', function() {
-    beforeEach('deploy and prepare', () => {
-        // Deploy a contract(s) and prepare it up
-        // to the pass / fail point
-    });
-
-    it('test the failing user', () => {
-        // Test something with the bad user
-        // in as few steps as possible
-    });
-
-    it('test the good user', () => {
-        // Test the VERY SAME steps,
-        // with only difference being the good user
-    });
-});
+Clone this repository and install its dependencies.
 ```
+$ git clone https://github.com/IconiqLab/ICNQToken.git
+$ cd ICNQToken
+$ npm install
+```
+
+### Compiling 
+
+To compile the project run `node_modules/.bin/truffle compile`
+
+### Running Tests
+
+To run unit tests run `bash run_test.sh`
