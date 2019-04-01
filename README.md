@@ -1,8 +1,8 @@
-[<img src="https://iconiqlab.com/wp-content/uploads/2017/09/Full-Logo-Small-Transparent.png" alt="Iconiq Lab" />](https://iconiqlab.com)
+[<img src="http://iconicholding.com/wp-content/uploads/2019/04/ICNQ-1-e1554146714496.png" alt="Iconic Holding" />](https://iconicholding.com/icnq-token)
 
 # ICNQ Token and Crowdsale Smart Contracts
 
-Iconiq Lab is an Initial Coin Offer and Token Launch (ICO) accelerator program. Iconiq Lab aims to provide the ICNQ Club Members and the mass crypto markets the highest quality ICO participation opportunities by sourcing, funding, advising, developing and accelerating the most promising crypto, blockchain and tokenizable startups to their own ICO.
+Iconic Holding is an Initial Coin Offer and Token Launch (ICO) accelerator program. Iconic Holding aims to provide the ICNQ Club Members and the mass crypto markets the highest quality ICO participation opportunities by sourcing, funding, advising, developing and accelerating the most promising crypto, blockchain and tokenizable startups to their own ICO.
 
 The ICNQ Club Membership Token grants its holders exclusive presale rights on accelerator program graduates. ICNQ Club Members will have platinum-level privileges such as exclusive access to presales and discounts on accelerator graduate’s ICOs. Additionally, ICNQ Club Members will have the ability to preview and provide feedback on program applicants to source only the most interesting startups, as well as contribute feedback to the token construction of program startups.
 
@@ -23,7 +23,7 @@ Please make sure you have the following dependencies installed on your machine
 
 Clone this repository and install its dependencies.
 ```
-$ git clone https://github.com/IconiqLab/ICNQToken.git
+$ git clone https://github.com/iconicholding/ICNQToken.git
 $ cd ICNQToken
 $ npm install
 ```
