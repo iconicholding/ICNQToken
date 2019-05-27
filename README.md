@@ -1,4 +1,4 @@
-[<img src="http://iconicholding.com/wp-content/uploads/2019/04/ICNQ-1-e1554146714496.png" alt="Iconic Holding" />](https://iconicholding.com/icnq-token)
+[<img src="http://iconicholding.com/wp-content/uploads/2018/10/icnq_token.png" alt="Iconic Holding" />](https://iconicholding.com/icnq-token)
 
 # ICNQ Token and Crowdsale Smart Contracts
 
